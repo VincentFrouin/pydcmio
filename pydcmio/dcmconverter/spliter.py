@@ -113,9 +113,9 @@ def split_series(dicom_dir, outdir):
                 print("'{0}' file encoding is not ISO_IR 100 as "
                       "expected.".format(dicom_file))
                 continue
-        else:
-            print("Can't check encoding of '{0}', missing (0x0008, 0x0005) "
-                  "tag.".format(dicom_file))
+#        else:
+#            print("Can't check encoding of '{0}', missing (0x0008, 0x0005) "
+#                  "tag.".format(dicom_file))
 
         # Process other DICOM attributes:
         # decode strings assuming 'ISO_IR 100'
@@ -123,12 +123,16 @@ def split_series(dicom_dir, outdir):
         SOPInstanceUID = dataset[0x0008, 0x0018].value
         if (0x0008, 0x103e) in dataset:
             SeriesDescription = cleanup(decode(dataset[0x0008, 0x103e].value))
-        SeriesNumber = dataset[0x0020, 0x0011].value
-        EchoTime = dataset[0x0018, 0x0081].value
+        SeriesNumber = dataset[0x0020, 0x0011].value        
+        if (0x0018, 0x0081) in dataset:
+            EchoTime = dataset[0x0018, 0x0081].value
+        else:
+            EchoTime = 0. # unrealistic value
 
         # Check the session time
         current_acquisition_datetime = (dataset[0x0008, 0x0020].value +
                                         dataset[0x0008, 0x0030].value)
+        current_acquisition_datetime = current_acquisition_datetime.split('.')[0]
         if acquisition_datetime is None:
             acquisition_datetime = current_acquisition_datetime
         elif acquisition_datetime != current_acquisition_datetime:
